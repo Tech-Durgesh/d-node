@@ -44,14 +44,15 @@ const SignIn = async (req = null) => {
             return sendResponse(false, 400, {}, "Email not registered!");
         }
         let hashed = await bcrypt.compare(req?.body?.password, user[0]?.password);
-        if(!hashed){
+        if (!hashed) {
             return sendResponse(false, 400, {}, "Invalid password!");
         }
-        else{
+        else {
             var token = jwt.sign({
+                id: user[0]?._id,
                 name: user[0]?.name,
                 email: user[0]?.email,
-            }, privateKey, );
+            }, privateKey, { expiresIn: "1hr" });
             let withoutPassword = user[0].toObject();
             delete withoutPassword.password;
             let loggedInUser = {
@@ -64,7 +65,28 @@ const SignIn = async (req = null) => {
     return sendResponse(false, 400, {}, "Something went wrong, Please try again with correct credentials!");
 }
 
+const UpdateProfile = async (req = null) => {
+    const authorization = req?.headers?.authorization;
+    if (!authorization) {
+        return sendResponse(false, 400, {}, "Authorization token not found!");
+    }
+    const token = authorization.split(" ")[1];
+    if (token) {
+        try {
+            jwt.verify(token, 'wrong-secret', function (error, decoded) {
+                if (error) {
+                    return sendResponse(false, 400, {}, "Authorization token is invalid!");
+                }
+                return sendResponse(true, 200, decoded, "Fetched token successfully!");
+            });
+        } catch (error) {
+            return sendResponse(false, 400, error, "Something went wrong with token, Please try again with correct details!");
+        }
+    }
+}
+
 module.exports = {
     SignUp,
-    SignIn
+    SignIn,
+    UpdateProfile
 }

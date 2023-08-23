@@ -12,4 +12,9 @@ Router.post('/signin', async (req, resp)=>{
     resp.status(user?.code).json(user);
 })
 
+Router.post('/profile-update', async (req, resp)=>{
+    let user = await AuthController.UpdateProfile(req);
+    resp.status(user?.code).json(user);
+})
+
 module.exports = Router;
