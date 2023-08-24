@@ -1,19 +1,26 @@
 const bcrypt = require("bcrypt");
-var jwt = require('jsonwebtoken');
 const sendResponse = require("../../helpers/common");
 const UserModel = require("../models/auth.server.models");
+const passport = require("passport");
+const LocalStrategy = require('passport-local').Strategy;
 var privateKey = "TestPrivateKey";
 
-const SignUp = async (req = null) => {
+const SignUp = async (req, resp) => {
     if (req?.body?.email) {
         let exist = await UserModel.find({ email: req?.body?.email });
         if (exist.length) {
-            return sendResponse(false, 400, {}, "Email already exist, Please try with another email or login with the existing email address!");
+            return resp.status(400).send({
+                status: false,
+                code: 400,
+                data: {},
+                message: "Email already exist, Please try with another email or login with the existing email address!"
+            });
         }
         try {
             let hashed = await bcrypt.hash(req?.body?.password, 10);
             let record = {
-                "name": req?.body?.name,
+                "firstname": req?.body?.firstname,
+                "lastname": req?.body?.lastname,
                 "email": req?.body?.email,
                 "phone": req?.body?.phone,
                 "address": req?.body?.address,
@@ -23,7 +30,12 @@ const SignUp = async (req = null) => {
             let user = await saveData.save();
             let withoutPassword = user.toObject();
             delete withoutPassword.password;
-            return sendResponse(true, 200, withoutPassword, "Data retrived!");
+            return resp.status(200).send({
+                status: true,
+                code: 200,
+                data: withoutPassword,
+                message: "Data retrived!"
+            });
         } catch (error) {
             const transformedObject = {};
             for (const key in error?.errors) {
@@ -31,62 +43,101 @@ const SignUp = async (req = null) => {
                     transformedObject[key] = error?.errors[key].message;
                 }
             }
-            return sendResponse(false, 400, {}, transformedObject);
+            return resp.status(400).send({
+                status: false,
+                code: 400,
+                data: {},
+                message: transformedObject
+            });
         }
     }
-    return sendResponse(false, 400, {}, "Something went wrong, Please try again with your details!");
+    return resp.status(400).send({
+        status: false,
+        code: 400,
+        data: {},
+        message: "Something went wrong, Please try again with your details!"
+    });
 }
 
-const SignIn = async (req = null) => {
+const SignIn = async (req, resp) => {
     if (req?.body?.email && req?.body?.password) {
-        let user = await UserModel.find({ email: req?.body?.email });
-        if (!user.length) {
-            return sendResponse(false, 400, {}, "Email not registered!");
+        let user = await UserModel.countDocuments({ email: req?.body?.email });
+        if (!user) {
+            return resp.status(400).send({
+                status: false,
+                code: 400,
+                data: {},
+                message: "Email not registered!"
+            });
         }
+        user = await UserModel.find({ email: req?.body?.email });
         let hashed = await bcrypt.compare(req?.body?.password, user[0]?.password);
         if (!hashed) {
-            return sendResponse(false, 400, {}, "Invalid password!");
+            return resp.status(400).send({
+                status: false,
+                code: 400,
+                data: {},
+                message: "Invalid password!"
+            });
         }
         else {
-            var token = jwt.sign({
-                id: user[0]?._id,
-                name: user[0]?.name,
-                email: user[0]?.email,
-            }, privateKey, { expiresIn: "1hr" });
+
+            const testtt = passport.use(new LocalStrategy(
+                function (username, password, done) {
+                    if (err) { return done(err); }
+                    if (!user) { return done(null, false); }
+                    return done(null, user);
+                }
+            ));
+            // var token = jwt.sign({
+            //     id: user[0]?._id,
+            //     firstname: user[0]?.firstname,
+            //     lastname: user[0]?.lastname,
+            //     email: user[0]?.email,
+            // }, privateKey, { expiresIn: "1hr" });
             let withoutPassword = user[0].toObject();
             delete withoutPassword.password;
             let loggedInUser = {
                 user: withoutPassword,
-                token: token,
+                token: "token",
             }
-            return sendResponse(true, 200, loggedInUser, "Loggedin successfully!");
+            return resp.status(200).send({
+                status: true,
+                code: 200,
+                data: loggedInUser,
+                message: "Loggedin successfully!"
+            });
         }
     }
-    return sendResponse(false, 400, {}, "Something went wrong, Please try again with correct credentials!");
+    return resp.status(400).send({
+        status: false,
+        code: 400,
+        data: {},
+        message: "Something went wrong, Please try again with correct credentials!"
+    });
 }
 
-const UpdateProfile = async (req = null) => {
-    const authorization = req?.headers?.authorization;
-    if (!authorization) {
-        return sendResponse(false, 400, {}, "Authorization token not found!");
-    }
-    const token = authorization.split(" ")[1];
-    if (token) {
-        try {
-            jwt.verify(token, 'wrong-secret', function (error, decoded) {
-                if (error) {
-                    return sendResponse(false, 400, {}, "Authorization token is invalid!");
-                }
-                return sendResponse(true, 200, decoded, "Fetched token successfully!");
-            });
-        } catch (error) {
-            return sendResponse(false, 400, error, "Something went wrong with token, Please try again with correct details!");
-        }
-    }
-}
+// const UpdateProfile = async (req = null) => {
+//     const authorization = req?.headers?.authorization;
+//     if (!authorization) {
+//         return sendResponse(false, 400, {}, "Authorization token not found!");
+//     }
+//     const token = authorization.split(" ")[1];
+//     if (token) {
+//         try {
+//             jwt.verify(token, 'wrong-secret', function (error, decoded) {
+//                 if (error) {
+//                     return sendResponse(false, 400, {}, "Authorization token is invalid!");
+//                 }
+//                 return sendResponse(true, 200, decoded, "Fetched token successfully!");
+//             });
+//         } catch (error) {
+//             return sendResponse(false, 400, error, "Something went wrong with token, Please try again with correct details!");
+//         }
+//     }
+// }
 
 module.exports = {
     SignUp,
     SignIn,
-    UpdateProfile
 }

@@ -4,6 +4,7 @@ const PORT = require("./config/.env.prod");
 require("./config/db.config");
 const swaggerDoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+
 const options = {
     definition: {
         openapi: "3.0.0",
@@ -17,7 +18,7 @@ const options = {
             }
         ]
     },
-    apis: ["./config/db.config"]
+    apis: ["./modules/auth/routes/*.js"]
 };
 
 const swaggerSpec = swaggerDoc(options);
