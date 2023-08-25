@@ -41,15 +41,6 @@ const Router = express.Router();
  *                 phone: 1234567890
  *                 address: Some Address
  *               message: Data retrieved!
- *       400:
- *         description: Bad request
- *         content:
- *           application/json:
- *             example:
- *               status: false
- *               code: 400
- *               data: {}
- *               message: Email already exists or validation error
  */
 
 Router.post('/signup', AuthController.SignUp);

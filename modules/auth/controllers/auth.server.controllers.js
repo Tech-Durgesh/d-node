@@ -1,8 +1,8 @@
 const bcrypt = require("bcrypt");
+const UserModel = require("../../users/models/user.model.server");
+const jwt = require("jsonwebtoken");
+const messages = require("../../helpers/messages");
 const sendResponse = require("../../helpers/common");
-const UserModel = require("../models/auth.server.models");
-const passport = require("passport");
-const LocalStrategy = require('passport-local').Strategy;
 var privateKey = "TestPrivateKey";
 
 const SignUp = async (req, resp) => {
@@ -13,7 +13,7 @@ const SignUp = async (req, resp) => {
                 status: false,
                 code: 400,
                 data: {},
-                message: "Email already exist, Please try with another email or login with the existing email address!"
+                message: messages.EMAIL_ALREADY_EXIST
             });
         }
         try {
@@ -34,7 +34,7 @@ const SignUp = async (req, resp) => {
                 status: true,
                 code: 200,
                 data: withoutPassword,
-                message: "Data retrived!"
+                message: messages.USER_REGISTERED_SUCCESSFULLY
             });
         } catch (error) {
             const transformedObject = {};
@@ -55,7 +55,7 @@ const SignUp = async (req, resp) => {
         status: false,
         code: 400,
         data: {},
-        message: "Something went wrong, Please try again with your details!"
+        message: messages.SOMETHING_WENT_WRONG
     });
 }
 
@@ -67,7 +67,7 @@ const SignIn = async (req, resp) => {
                 status: false,
                 code: 400,
                 data: {},
-                message: "Email not registered!"
+                message: messages.EMAIL_NOT_REGISTERED
             });
         }
         user = await UserModel.find({ email: req?.body?.email });
@@ -77,35 +77,27 @@ const SignIn = async (req, resp) => {
                 status: false,
                 code: 400,
                 data: {},
-                message: "Invalid password!"
+                message: messages.INVALID_PASSWORD
             });
         }
         else {
-
-            const testtt = passport.use(new LocalStrategy(
-                function (username, password, done) {
-                    if (err) { return done(err); }
-                    if (!user) { return done(null, false); }
-                    return done(null, user);
-                }
-            ));
-            // var token = jwt.sign({
-            //     id: user[0]?._id,
-            //     firstname: user[0]?.firstname,
-            //     lastname: user[0]?.lastname,
-            //     email: user[0]?.email,
-            // }, privateKey, { expiresIn: "1hr" });
+            var token = jwt.sign({
+                id: user[0]?._id,
+                firstname: user[0]?.firstname,
+                lastname: user[0]?.lastname,
+                email: user[0]?.email,
+            }, privateKey, { expiresIn: "1hr" });
             let withoutPassword = user[0].toObject();
             delete withoutPassword.password;
             let loggedInUser = {
                 user: withoutPassword,
-                token: "token",
+                token: token,
             }
             return resp.status(200).send({
                 status: true,
                 code: 200,
                 data: loggedInUser,
-                message: "Loggedin successfully!"
+                message: messages.LOGGED_IN_SUCCESSFULLY
             });
         }
     }
@@ -113,7 +105,7 @@ const SignIn = async (req, resp) => {
         status: false,
         code: 400,
         data: {},
-        message: "Something went wrong, Please try again with correct credentials!"
+        message: messages.SOMETHING_WENT_WRONG
     });
 }
 
