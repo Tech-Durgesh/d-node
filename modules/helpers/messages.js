@@ -5,6 +5,11 @@ const messages = {
     EMAIL_NOT_REGISTERED : "Email not registered with us!",
     INVALID_PASSWORD : "Invalid password!",
     LOGGED_IN_SUCCESSFULLY : "Loggedin successfully!",
+
+    TOKEN_NOT_FOUND : "Authorization token not found!",
+    TOKEN_INVALID_OR_EXPIRED : "Authorization token is invalid or expired!",
+
+    DATA_RETRIVED : "Data retrived successfully!"
 }
 
 module.exports = messages;

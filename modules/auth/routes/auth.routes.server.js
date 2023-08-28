@@ -44,9 +44,6 @@ const Router = express.Router();
  */
 
 Router.post('/signup', AuthController.SignUp);
-
 Router.post('/signin', AuthController.SignIn);
-
-// Router.post('/profile-update', AuthController.UpdateProfile);
 
 module.exports = Router;

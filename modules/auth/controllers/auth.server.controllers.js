@@ -2,8 +2,8 @@ const bcrypt = require("bcrypt");
 const UserModel = require("../../users/models/user.model.server");
 const jwt = require("jsonwebtoken");
 const messages = require("../../helpers/messages");
+const JWTPrivateKey = process.env.JWTPrivateKey;
 const sendResponse = require("../../helpers/common");
-var privateKey = "TestPrivateKey";
 
 const SignUp = async (req, resp) => {
     if (req?.body?.email) {
@@ -86,7 +86,7 @@ const SignIn = async (req, resp) => {
                 firstname: user[0]?.firstname,
                 lastname: user[0]?.lastname,
                 email: user[0]?.email,
-            }, privateKey, { expiresIn: "1hr" });
+            }, JWTPrivateKey, { expiresIn: "24hr" });
             let withoutPassword = user[0].toObject();
             delete withoutPassword.password;
             let loggedInUser = {
@@ -108,26 +108,6 @@ const SignIn = async (req, resp) => {
         message: messages.SOMETHING_WENT_WRONG
     });
 }
-
-// const UpdateProfile = async (req = null) => {
-//     const authorization = req?.headers?.authorization;
-//     if (!authorization) {
-//         return sendResponse(false, 400, {}, "Authorization token not found!");
-//     }
-//     const token = authorization.split(" ")[1];
-//     if (token) {
-//         try {
-//             jwt.verify(token, 'wrong-secret', function (error, decoded) {
-//                 if (error) {
-//                     return sendResponse(false, 400, {}, "Authorization token is invalid!");
-//                 }
-//                 return sendResponse(true, 200, decoded, "Fetched token successfully!");
-//             });
-//         } catch (error) {
-//             return sendResponse(false, 400, error, "Something went wrong with token, Please try again with correct details!");
-//         }
-//     }
-// }
 
 module.exports = {
     SignUp,
