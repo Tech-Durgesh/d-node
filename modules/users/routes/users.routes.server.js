@@ -21,9 +21,9 @@ const UserController = require("../controllers/user.controller.server");
  *                   name: John Doe
  *                 - id: 2
  *                   name: Jane Smith
- *                 - id: 3
- *                   name: Alice Johnson
  */
 Router.get('/all-users', UserController.AllUsers);
+
+Router.post('/update-user/:uid', UserController.UpdateUser);
 
 module.exports = Router;
