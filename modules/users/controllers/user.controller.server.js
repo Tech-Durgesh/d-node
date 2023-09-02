@@ -76,11 +76,12 @@ const UpdateUser = async (req, resp) => {
             });
         }
         else{
-            const users = await UserModel.find().select('-password');
+            const users = await UserModel.findByIdAndUpdate(userId, req?.body);
+            const user = await UserModel.find({_id: userId}).select("-password");
             return resp.status(200).send({
                 status: true,
                 code: 200,
-                data: users,
+                data: user,
                 message: messages.DATA_RETRIVED
             });
         }
